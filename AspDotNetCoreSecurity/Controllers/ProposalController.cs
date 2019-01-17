@@ -1,5 +1,6 @@
 ﻿using AspDotNetCoreSecurity.Models;
 using AspDotNetCoreSecurity.Repositories;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -13,20 +14,22 @@ namespace AspDotNetCoreSecurity.Controllers
 
         private readonly ConferenceRepo conferenceRepo;
         private readonly ProposalRepo proposalRepo;
-
-        public ProposalController(ConferenceRepo conferenceRepo, ProposalRepo proposalRepo)
+        public readonly IDataProtector _dataProtector;
+        public ProposalController(ConferenceRepo conferenceRepo, ProposalRepo proposalRepo,IDataProtectionProvider dataProtectionProvider,PurposeStringConstants purposeStringConstants)
         {
+            _dataProtector = dataProtectionProvider.CreateProtector(purposeStringConstants.ConferenceIdQueryString);
             this.conferenceRepo = conferenceRepo;
             this.proposalRepo = proposalRepo;
         }
 
-        public IActionResult Index(int conferenceId)
+        public IActionResult Index(string conferenceId)
         {
-            var conference = conferenceRepo.GetById(conferenceId);
+            var decryptedConferenceId = _dataProtector.Unprotect(conferenceId);
+            var conference = conferenceRepo.GetById(int.Parse(decryptedConferenceId));
             ViewBag.Title = $"Speaker - Proposals For Conference {conference.Name} {conference.Location}";
-            ViewBag.ConferenceId = conferenceId;
+            ViewBag.ConferenceId = decryptedConferenceId;
 
-            return View(proposalRepo.GetAllForConference(conferenceId));
+            return View(proposalRepo.GetAllForConference(int.Parse(decryptedConferenceId)));
         }
 
         public IActionResult AddProposal(int conferenceId)
@@ -40,13 +43,13 @@ namespace AspDotNetCoreSecurity.Controllers
         {
             if (ModelState.IsValid)
                 proposalRepo.Add(proposal);
-            return RedirectToAction("Index", new { conferenceId = proposal.ConferenceId });
+            return RedirectToAction("Index", new { conferenceId = _dataProtector.Protect(proposal.ConferenceId.ToString()) });
         }
 
         public IActionResult Approve(int proposalId)
         {
             var proposal = proposalRepo.Approve(proposalId);
-            return RedirectToAction("Index", new { conferenceId = proposal.ConferenceId });
+            return RedirectToAction("Index", new { conferenceId = _dataProtector.Protect(proposal.ConferenceId.ToString()) });
         }
     }
 }

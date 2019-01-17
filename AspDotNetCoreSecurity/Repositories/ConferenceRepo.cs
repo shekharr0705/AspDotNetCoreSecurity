@@ -1,4 +1,5 @@
 ﻿using AspDotNetCoreSecurity.Models;
+using Microsoft.AspNetCore.DataProtection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +10,14 @@ namespace AspDotNetCoreSecurity.Repositories
     public class ConferenceRepo
     {
         private readonly List<ConferenceModel> conferences = new List<ConferenceModel>();
+        private readonly IDataProtector _dataProtector;
 
-        public ConferenceRepo()
+        public ConferenceRepo(IDataProtectionProvider protectionProvider, PurposeStringConstants purposeStringConstants)
         {
-            conferences.Add(new ConferenceModel { Id = 1, Name = "Developer Week", Location = "Nuremberg", Start = new DateTime(2018, 6, 25) });
-            conferences.Add(new ConferenceModel { Id = 2, Name = "IT/DevConnections", Location = "San Francisco", Start = new DateTime(2018, 10, 18) });
+            _dataProtector = protectionProvider.CreateProtector(purposeStringConstants.ConferenceIdQueryString);
+            conferences.Add(new ConferenceModel { Id = 1, Name = "Developer Week", EncryptedId=_dataProtector.Protect("1"), Location = "Nuremberg", Start = new DateTime(2018, 6, 25) });
+            conferences.Add(new ConferenceModel { Id = 2, Name = "IT/DevConnections", EncryptedId= _dataProtector.Protect("2"),  Location = "San Francisco", Start = new DateTime(2018, 10, 18) });
+           
         }
         public IEnumerable<ConferenceModel> GetAll()
         {
@@ -28,6 +32,7 @@ namespace AspDotNetCoreSecurity.Repositories
         public void Add(ConferenceModel model)
         {
             model.Id = conferences.Max(c => c.Id) + 1;
+            model.EncryptedId = _dataProtector.Protect(model.Id.ToString());
             conferences.Add(model);
         }
     }

@@ -28,9 +28,11 @@ namespace AspDotNetCoreSecurity
         {
 
             services.AddMvc();
+            services.AddDataProtection();
             services.AddSingleton<ConferenceRepo>();
             services.AddSingleton<ProposalRepo>();
             services.AddSingleton<AttendeeRepo>();
+            services.AddSingleton<PurposeStringConstants>();
             
             // cors used only for APIs
             services.AddCors(option =>
