@@ -1,5 +1,6 @@
 ﻿using AspDotNetCoreSecurity.Models;
 using AspDotNetCoreSecurity.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace AspDotNetCoreSecurity.Controllers
 {
+    [Authorize]
     public class ProposalController : Controller
     {
 

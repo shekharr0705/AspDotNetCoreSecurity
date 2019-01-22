@@ -1,5 +1,6 @@
 ﻿using AspDotNetCoreSecurity.Models;
 using AspDotNetCoreSecurity.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Win32.TaskScheduler;
 using System;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace AspDotNetCoreSecurity.Controllers
 {
+    [Authorize]
     [RequireHttps]
     public class ConferenceController : Controller
     {
